@@ -19,25 +19,51 @@ export default function FallSendenDialog({ open, onClose, fallData, dokumente = 
   const handleSend = async () => {
     setLoading(true);
     try {
-            const API_URL = import.meta.env.VITE_API_URL || 'https://gutachterportal-neu-backend.onrender.com/api';
+      // Determine API URL based on environment
+      const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+      const API_URL = isProduction 
+        ? 'https://gutachterportal-neu-backend.onrender.com/api'
+        : '/api'; // Use proxy in development
 
-      // API-Call zum Senden des Falls (Backend muss diese Route bereitstellen)
-      const res = await fetch(`${API_URL}/api/cases/send`, {
+      console.log('API URL:', `${API_URL}/cases/send`); // Debug log
+      
+      const res = await fetch(`${API_URL}/cases/send`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { 
+          'Content-Type': 'application/json', 
+          Authorization: `Bearer ${localStorage.getItem('token')}` 
+        },
         body: JSON.stringify({ fallId: fallData._id })
       });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
       if (data.erfolg) {
-        setSnackbar({ open: true, message: 'Fall wurde erfolgreich an anfragen@rechtly.de und an Sie gesendet.', severity: 'success' });
+        setSnackbar({ 
+          open: true, 
+          message: 'Fall wurde erfolgreich an anfragen@rechtly.de und an Sie gesendet.', 
+          severity: 'success' 
+        });
         if (onSent && data.fall) onSent(data.fall);
         window.dispatchEvent(new Event('caseStatusChanged'));
         onClose();
       } else {
-        setSnackbar({ open: true, message: data.nachricht || 'Fehler beim Senden des Falls.', severity: 'error' });
+        setSnackbar({ 
+          open: true, 
+          message: data.nachricht || 'Fehler beim Senden des Falls.', 
+          severity: 'error' 
+        });
       }
     } catch (err) {
-      setSnackbar({ open: true, message: 'Fehler beim Senden des Falls.', severity: 'error' });
+      console.error('Error sending case:', err);
+      setSnackbar({ 
+        open: true, 
+        message: 'Fehler beim Senden des Falls. Bitte versuchen Sie es erneut.', 
+        severity: 'error' 
+      });
     } finally {
       setLoading(false);
     }
@@ -132,4 +158,4 @@ export default function FallSendenDialog({ open, onClose, fallData, dokumente = 
       </Snackbar>
     </Dialog>
   );
-} 
+}
