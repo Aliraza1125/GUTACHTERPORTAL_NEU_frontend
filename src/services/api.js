@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// API-Basis-URL
+// API-Basis-URL - Updated for Render deployment
 const API_URL = process.env.NODE_ENV === 'production' 
-  ? '/api' 
+  ? 'https://gutachterportal-neu-backend.onrender.com/api' 
   : 'http://127.0.0.1:5000/api';
 
 // Axios-Instanz erstellen
@@ -10,7 +10,8 @@ const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  timeout: 30000, // 30 seconds timeout for Render (sometimes slow on free tier)
 });
 
 // Request-Interceptor für Token
@@ -67,6 +68,36 @@ export const authService = {
       localStorage.setItem('token', response.data.benutzer.token);
       localStorage.setItem('user', JSON.stringify(response.data.benutzer));
     }
+    return response.data;
+  },
+
+  // Konto aktivieren
+  activateAccount: async (token) => {
+    const response = await api.post('/users/activate', { token });
+    return response.data;
+  },
+
+  // Passwort zurücksetzen
+  resetPassword: async (token, newPassword) => {
+    const response = await api.post('/users/reset-password', { 
+      token, 
+      newPassword 
+    });
+    return response.data;
+  },
+
+  // Konto aktivieren
+  activateAccount: async (token) => {
+    const response = await api.post('/users/activate', { token });
+    return response.data;
+  },
+
+  // Passwort zurücksetzen
+  resetPassword: async (token, newPassword) => {
+    const response = await api.post('/users/reset-password', { 
+      token, 
+      newPassword 
+    });
     return response.data;
   },
 
@@ -187,4 +218,4 @@ export const documentService = {
   }
 };
 
-export default api; 
+export default api;
