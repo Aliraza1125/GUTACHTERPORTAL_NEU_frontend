@@ -16,10 +16,6 @@ import axios from 'axios';
 import logo from '../assets/Logo Kopie.png';
 import api from '../services/api';
 
-const API_URL = process.env.NODE_ENV === 'production' 
-  ? '/api' 
-  : 'http://localhost:5000/api';
-
 const AccountActivation = () => {
   const { token } = useParams();
   const [loading, setLoading] = useState(true);
@@ -31,6 +27,14 @@ const AccountActivation = () => {
   useEffect(() => {
     const activateAccount = async () => {
       try {
+        // Fix: Determine API URL based on environment
+        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        const API_URL = isProduction 
+          ? 'https://gutachterportal-neu-backend.onrender.com/api'
+          : 'http://localhost:5000/api';
+
+        console.log('Activation API URL:', `${API_URL}/users/aktivieren/${token}`); // Debug log
+
         const response = await axios.get(`${API_URL}/users/aktivieren/${token}`);
         
         if (response.data.erfolg) {
@@ -44,6 +48,7 @@ const AccountActivation = () => {
             }
           } catch (profileErr) {
             // Ignorieren, falls nicht eingeloggt
+            console.log('Could not fetch profile after activation:', profileErr);
           }
           // Nach 3 Sekunden zum Login weiterleiten
           setTimeout(() => {
@@ -54,6 +59,7 @@ const AccountActivation = () => {
           setError(response.data.nachricht || 'Aktivierung fehlgeschlagen');
         }
       } catch (error) {
+        console.error('Activation error:', error);
         setSuccess(false);
         setError(error.response?.data?.nachricht || 'Aktivierung fehlgeschlagen. Bitte versuchen Sie es später erneut.');
       } finally {
@@ -61,7 +67,12 @@ const AccountActivation = () => {
       }
     };
 
-    activateAccount();
+    if (token) {
+      activateAccount();
+    } else {
+      setLoading(false);
+      setError('Kein Aktivierungstoken gefunden.');
+    }
   }, [token, navigate]);
 
   return (
@@ -186,4 +197,4 @@ const AccountActivation = () => {
   );
 };
 
-export default AccountActivation; 
+export default AccountActivation;
