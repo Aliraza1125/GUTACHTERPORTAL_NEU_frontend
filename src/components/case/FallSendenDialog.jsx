@@ -19,8 +19,10 @@ export default function FallSendenDialog({ open, onClose, fallData, dokumente = 
   const handleSend = async () => {
     setLoading(true);
     try {
+            const API_URL = import.meta.env.VITE_API_URL || 'https://gutachterportal-neu-backend.onrender.com/api';
+
       // API-Call zum Senden des Falls (Backend muss diese Route bereitstellen)
-      const res = await fetch('/api/cases/send', {
+      const res = await fetch(`${API_URL}/api/cases/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: JSON.stringify({ fallId: fallData._id })
